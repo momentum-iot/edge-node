@@ -1,0 +1,118 @@
+@startuml PumpUp_Gym_Edge_Architecture
+
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+!include ICONURL/common.puml
+!include ICONURL/font-awesome-5/microchip.puml
+!include ICONURL/font-awesome-5/server.puml
+!include ICONURL/font-awesome-5/database.puml
+!include ICONURL/font-awesome-5/laptop.puml
+!include ICONURL/font-awesome-5/id_card.puml
+!include ICONURL/font-awesome-5/heartbeat.puml
+
+title PumpUp Gym Edge Service - System Architecture
+
+' Hardware Layer
+package "IoT Hardware" {
+  component ESP32 [
+    <$microchip>
+    **ESP32 WROOM**
+    Main Controller
+  ]
+  
+  component PN532 [
+    <$id_card>
+    **PN532 NFC Reader**
+    Member Identification
+  ]
+  
+  component PulseSensor [
+    <$heartbeat>
+    **3-Point Pulse Sensor**
+    BPM Monitoring
+  ]
+}
+
+' Edge Service Layer
+package "Edge Service (Laptop)" {
+  component FlaskAPI [
+    <$server>
+    **Flask REST API**
+    Port 5000
+  ]
+  
+  component SQLite [
+    <$database>
+    **SQLite Database**
+    gym_edge.db
+  ]
+}
+
+' Bounded Contexts
+package "IAM Bounded Context" {
+  component AccessControl [
+    **Access Control**
+    - NFC Check-in/out
+    - Membership Validation
+    - Occupancy Tracking
+  ]
+  
+  component DeviceAuth [
+    **Device Authentication**
+    - ESP32 Auth
+    - API Key Validation
+  ]
+}
+
+package "Equipment Bounded Context" {
+  component SessionManagement [
+    **Session Management**
+    - Start/End Sessions
+    - Equipment Tracking
+  ]
+  
+  component HeartRateMonitoring [
+    **Heart Rate Monitoring**
+    - BPM Recording
+    - Session Association
+  ]
+}
+
+' Connections - Hardware to ESP32
+PN532 -down-> ESP32 : I2C
+PulseSensor -down-> ESP32 : Analog
+
+' Connections - ESP32 to Edge Service
+ESP32 -down-> FlaskAPI : HTTP/JSON\n(WiFi)
+
+' Connections - API to Bounded Contexts
+FlaskAPI -down-> AccessControl : /api/v1/access/*
+FlaskAPI -down-> SessionManagement : /api/v1/equipment/session/*
+FlaskAPI -down-> HeartRateMonitoring : /api/v1/equipment/heart-rate
+
+' Connections - Bounded Contexts to Database
+AccessControl -down-> SQLite : members\ncheck_ins
+DeviceAuth -down-> SQLite : devices
+SessionManagement -down-> SQLite : equipment\nequipment_sessions
+HeartRateMonitoring -down-> SQLite : heart_rate_records
+
+' API Endpoints
+note right of FlaskAPI
+  **Key Endpoints:**
+  POST /api/v1/access/nfc-scan
+  GET  /api/v1/access/occupancy
+  POST /api/v1/equipment/session/start
+  POST /api/v1/equipment/session/end
+  POST /api/v1/equipment/heart-rate
+end note
+
+' Workflow
+note bottom of ESP32
+  **Typical Workflow:**
+  1. Read NFC → Check-in/out
+  2. Start equipment session
+  3. Monitor BPM continuously
+  4. End session
+  5. Check-out with NFC
+end note
+
+@enduml
