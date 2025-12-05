@@ -42,11 +42,10 @@ class EquipmentSession(Model):
 class HeartRateRecord(Model):
     """
     ORM model for the heart_rate_records table.
-    Represents a heart rate measurement during an equipment session.
+    Represents a heart rate measurement for a member (no equipment session required).
     """
     id = AutoField()
-    session_id = ForeignKeyField(EquipmentSession, backref='heart_rate_records', column_name='session_id')
-    member_id = IntegerField()
+    member_id = CharField()
     bpm = FloatField()
     measured_at = DateTimeField()
     created_at = DateTimeField()

@@ -70,32 +70,29 @@ class EquipmentSession:
 
 
 class HeartRateRecord:
-    """Represents a heart rate measurement during equipment usage.
+    """Represents a heart rate measurement.
 
     Attributes:
         id (int): Unique identifier for the record.
-        session_id (int): ID of the equipment session.
-        member_id (int): ID of the member.
+        member_id (str): Identifier for the member (e.g., NFC UID).
         bpm (float): Beats per minute (heart rate).
         measured_at (datetime): Timestamp when the measurement was taken.
         created_at (datetime): Record creation timestamp.
     """
 
-    def __init__(self, session_id: int, member_id: int, bpm: float, 
-                 measured_at: datetime, created_at: Optional[datetime] = None, 
+    def __init__(self, member_id: str, bpm: float,
+                 measured_at: datetime, created_at: Optional[datetime] = None,
                  id: Optional[int] = None):
         """Initialize a HeartRateRecord instance.
 
         Args:
-            session_id (int): Session ID.
-            member_id (int): Member ID.
+            member_id (str): Member ID / NFC UID.
             bpm (float): Heart rate in beats per minute.
             measured_at (datetime): Measurement timestamp.
             created_at (datetime, optional): Record creation timestamp.
             id (int, optional): Record identifier.
         """
         self.id = id
-        self.session_id = session_id
         self.member_id = member_id
         self.bpm = bpm
         self.measured_at = measured_at

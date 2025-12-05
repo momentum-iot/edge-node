@@ -57,14 +57,12 @@ class AccessControlApplicationService:
         """
         # Find member by NFC UID
         member = self.member_repository.find_by_nfc_uid(nfc_uid)
-        
+        auto_registered = False
+
+        # Auto-register new NFC cards as active members
         if not member:
-            return {
-                "success": False,
-                "action": "denied",
-                "reason": "Member not found",
-                "nfc_uid": nfc_uid
-            }
+            member = self.member_repository.create_from_nfc_uid(nfc_uid)
+            auto_registered = True
 
         # Validate membership
         allowed, reason = self.access_control_service.validate_member_access(member)
@@ -91,6 +89,7 @@ class AccessControlApplicationService:
                 "action": "check_out",
                 "member_id": member.id,
                 "member_name": member.name,
+                "member_code": member.nfc_uid,
                 "check_in_id": saved_check_in.id,
                 "check_in_time": saved_check_in.check_in_time.isoformat(),
                 "check_out_time": saved_check_in.check_out_time.isoformat(),
@@ -106,6 +105,8 @@ class AccessControlApplicationService:
                 "action": "check_in",
                 "member_id": member.id,
                 "member_name": member.name,
+                "member_code": member.nfc_uid,
+                "auto_registered": auto_registered,
                 "check_in_id": saved_check_in.id,
                 "check_in_time": saved_check_in.check_in_time.isoformat(),
                 "current_occupancy": self.check_in_repository.count_active_check_ins()

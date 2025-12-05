@@ -1,5 +1,5 @@
 """Repositories for the IAM bounded context."""
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List
 
 import peewee
@@ -132,6 +132,37 @@ class MemberRepository:
             membership_expiry=member_model.membership_expiry,
             created_at=member_model.created_at,
             id=member_model.id
+        )
+
+    @staticmethod
+    def create_from_nfc_uid(nfc_uid: str) -> Member:
+        """Auto-register a member when a new NFC UID is seen.
+
+        Args:
+            nfc_uid (str): NFC card UID.
+
+        Returns:
+            Member: Newly created member entity.
+        """
+        expiry = datetime.now() + timedelta(days=30)
+        member_model, _ = MemberModel.get_or_create(
+            nfc_uid=nfc_uid,
+            defaults={
+                "name": f"NFC User {nfc_uid}",
+                "email": f"{nfc_uid.lower()}@autogen.local",
+                "membership_status": "active",
+                "membership_expiry": expiry,
+                "created_at": datetime.now(),
+            },
+        )
+        return Member(
+            nfc_uid=member_model.nfc_uid,
+            name=member_model.name,
+            email=member_model.email,
+            membership_status=member_model.membership_status,
+            membership_expiry=member_model.membership_expiry,
+            created_at=member_model.created_at,
+            id=member_model.id,
         )
 
 

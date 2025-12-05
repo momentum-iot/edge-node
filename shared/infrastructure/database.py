@@ -16,7 +16,7 @@ def init_db() -> None:
         db.close()
     db.connect()
     from iam.infrastructure.models import Device, Member, CheckIn
-    from health.infrastructure.models import Equipment, EquipmentSession, HeartRateRecord
-    db.create_tables([Device, Member, CheckIn, Equipment, EquipmentSession, HeartRateRecord], safe=True)
+    from health.infrastructure.models import HeartRateRecord
+    db.create_tables([Device, Member, CheckIn, HeartRateRecord], safe=True)
     db.close()
 
